@@ -1,0 +1,197 @@
+#!/bin/bash
+
+# claudenv - 便捷切换 Claude API 配置的命令行工具
+
+set -e
+
+CONFIG_DIR="$HOME/.claudenv"
+CONFIG_FILE="$CONFIG_DIR/settings.json"
+
+# 检查配置文件是否存在
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "错误: 配置文件不存在 $CONFIG_FILE"
+    echo "请先运行安装脚本生成配置文件"
+    exit 1
+fi
+
+# 检查 jq 是否安装
+if ! command -v jq &> /dev/null; then
+    echo "错误: 需要安装 jq 来解析 JSON 配置文件"
+    echo "请运行: brew install jq"
+    exit 1
+fi
+
+# 获取当前生效的配置
+get_current_profile() {
+    local current_base_url="$ANTHROPIC_BASE_URL"
+    if [[ -z "$current_base_url" ]]; then
+        echo ""
+        return
+    fi
+    
+    jq -r --arg url "$current_base_url" '.profiles[] | select(.env.ANTHROPIC_BASE_URL == $url) | .name' "$CONFIG_FILE" 2>/dev/null || echo ""
+}
+
+# 获取所有配置名称
+get_profile_names() {
+    jq -r '.profiles[].name' "$CONFIG_FILE"
+}
+
+# 根据名称获取配置
+get_profile_config() {
+    local profile_name="$1"
+    jq -r --arg name "$profile_name" '.profiles[] | select(.name == $name)' "$CONFIG_FILE"
+}
+
+# 应用配置
+apply_profile() {
+    local profile_name="$1"
+    local config
+    config=$(get_profile_config "$profile_name")
+    
+    if [[ -z "$config" ]]; then
+        echo "错误: 找不到配置 '$profile_name'"
+        exit 1
+    fi
+    
+    # 先清除现有的环境变量
+    unset ANTHROPIC_BASE_URL
+    unset ANTHROPIC_AUTH_TOKEN
+    unset ANTHROPIC_MODEL
+    unset ANTHROPIC_SMALL_FAST_MODEL
+    
+    # 应用新配置
+    local base_url auth_token model small_fast_model
+    base_url=$(echo "$config" | jq -r '.env.ANTHROPIC_BASE_URL // empty')
+    auth_token=$(echo "$config" | jq -r '.env.ANTHROPIC_AUTH_TOKEN // empty')
+    model=$(echo "$config" | jq -r '.env.ANTHROPIC_MODEL // empty')
+    small_fast_model=$(echo "$config" | jq -r '.env.ANTHROPIC_SMALL_FAST_MODEL // empty')
+    
+    [[ -n "$base_url" ]] && export ANTHROPIC_BASE_URL="$base_url"
+    [[ -n "$auth_token" ]] && export ANTHROPIC_AUTH_TOKEN="$auth_token"
+    [[ -n "$model" ]] && export ANTHROPIC_MODEL="$model"
+    [[ -n "$small_fast_model" ]] && export ANTHROPIC_SMALL_FAST_MODEL="$small_fast_model"
+    
+    echo "已切换到配置: $profile_name"
+}
+
+# 显示菜单项
+display_menu() {
+    local profiles=("$@")
+    local current_profile="$1"
+    shift
+    local selected_index="$1"
+    shift
+    local profiles_array=("$@")
+    
+    clear
+    echo "选择 Claude API 配置 (使用 ↑↓ 方向键选择，回车确认):"
+    echo
+    
+    for i in "${!profiles_array[@]}"; do
+        local prefix="  "
+        local suffix=""
+        
+        # 标记当前生效的配置
+        if [[ "${profiles_array[$i]}" == "$current_profile" ]]; then
+            suffix=" *"
+        fi
+        
+        # 高亮选中的项
+        if [[ $i -eq $selected_index ]]; then
+            prefix="➤ "
+            echo -e "\033[7m${prefix}${profiles_array[$i]}${suffix}\033[0m"
+        else
+            echo "${prefix}${profiles_array[$i]}${suffix}"
+        fi
+    done
+    
+    echo
+    echo "提示: * 表示当前生效的配置"
+}
+
+# 主函数
+main() {
+    local current_profile
+    current_profile=$(get_current_profile)
+    
+    # 读取所有配置名称到数组
+    local profiles=()
+    while IFS= read -r line; do
+        profiles+=("$line")
+    done < <(get_profile_names)
+    
+    # 找到当前配置的索引，作为默认选择
+    local selected_index=0
+    if [[ -n "$current_profile" ]]; then
+        for i in "${!profiles[@]}"; do
+            if [[ "${profiles[$i]}" == "$current_profile" ]]; then
+                selected_index=$i
+                break
+            fi
+        done
+    fi
+    
+    local total_profiles=${#profiles[@]}
+    
+    # 交互式菜单循环
+    while true; do
+        display_menu "$current_profile" "$selected_index" "${profiles[@]}"
+        
+        # 读取按键
+        read -rsn1 key
+        
+        case "$key" in
+            $'\x1b')  # ESC序列
+                read -rsn2 key
+                case "$key" in
+                    '[A')  # 上箭头
+                        ((selected_index--))
+                        if [[ $selected_index -lt 0 ]]; then
+                            selected_index=$((total_profiles - 1))
+                        fi
+                        ;;
+                    '[B')  # 下箭头
+                        ((selected_index++))
+                        if [[ $selected_index -ge $total_profiles ]]; then
+                            selected_index=0
+                        fi
+                        ;;
+                esac
+                ;;
+            '')  # 回车键
+                local choice="${profiles[$selected_index]}"
+                clear
+                apply_profile "$choice"
+                echo
+                
+                # 检查是否可以执行 claude 命令
+                if command -v claude &> /dev/null; then
+                    echo "正在启动 claude..."
+                    exec claude
+                else
+                    echo "警告: 找不到 claude 命令"
+                    echo "请确保 claude 已正确安装并在 PATH 中"
+                fi
+                break
+                ;;
+            'q'|'Q')  # 退出
+                clear
+                echo "已取消"
+                exit 0
+                ;;
+        esac
+    done
+}
+
+# 如果有参数，直接应用指定的配置
+if [[ $# -gt 0 ]]; then
+    apply_profile "$1"
+    echo
+    if command -v claude &> /dev/null; then
+        echo "正在启动 claude..."
+        exec claude
+    fi
+else
+    main
+fi
