@@ -21,6 +21,22 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+# 显示帮助信息
+show_help() {
+    echo "使用方法: claudenv [选项] [配置名称]"
+    echo
+    echo "选项:"
+    echo "  -c, --claude    切换配置后启动 Claude"
+    echo "  -h, --help      显示此帮助信息"
+    echo
+    echo "示例:"
+    echo "  claudenv              交互式选择配置"
+    echo "  claudenv kimi         切换到 kimi 配置"
+    echo "  claudenv -c kimi      切换到 kimi 配置并启动 Claude"
+    echo
+    echo "提示: 默认只切换配置，不自动启动 Claude"
+}
+
 # 获取当前生效的配置
 get_current_profile() {
     local current_base_url="$ANTHROPIC_BASE_URL"
@@ -46,6 +62,7 @@ get_profile_config() {
 # 应用配置
 apply_profile() {
     local profile_name="$1"
+    local launch_claude="$2"
     local config
     config=$(get_profile_config "$profile_name")
     
@@ -73,6 +90,17 @@ apply_profile() {
     [[ -n "$small_fast_model" ]] && export ANTHROPIC_SMALL_FAST_MODEL="$small_fast_model"
     
     echo "已切换到配置: $profile_name"
+    
+    # 如果指定了启动 Claude，则启动
+    if [[ "$launch_claude" == "true" ]]; then
+        if command -v claude &> /dev/null; then
+            echo "正在启动 claude..."
+            exec claude
+        else
+            echo "警告: 找不到 claude 命令"
+            echo "请确保 claude 已正确安装并在 PATH 中"
+        fi
+    fi
 }
 
 # 显示菜单项
@@ -86,6 +114,7 @@ display_menu() {
     
     clear
     echo "选择 Claude API 配置 (使用 ↑↓ 方向键选择，回车确认):"
+    echo "按 'c' 键切换配置并启动 Claude"
     echo
     
     for i in "${!profiles_array[@]}"; do
@@ -107,7 +136,7 @@ display_menu() {
     done
     
     echo
-    echo "提示: * 表示当前生效的配置"
+    echo "提示: * 表示当前生效的配置，按 'c' 启动 Claude"
 }
 
 # 主函数
@@ -162,17 +191,13 @@ main() {
             '')  # 回车键
                 local choice="${profiles[$selected_index]}"
                 clear
-                apply_profile "$choice"
-                echo
-                
-                # 检查是否可以执行 claude 命令
-                if command -v claude &> /dev/null; then
-                    echo "正在启动 claude..."
-                    exec claude
-                else
-                    echo "警告: 找不到 claude 命令"
-                    echo "请确保 claude 已正确安装并在 PATH 中"
-                fi
+                apply_profile "$choice" "false"
+                break
+                ;;
+            'c'|'C')  # 切换配置并启动 Claude
+                local choice="${profiles[$selected_index]}"
+                clear
+                apply_profile "$choice" "true"
                 break
                 ;;
             'q'|'Q')  # 退出
@@ -184,14 +209,42 @@ main() {
     done
 }
 
-# 如果有参数，直接应用指定的配置
-if [[ $# -gt 0 ]]; then
-    apply_profile "$1"
-    echo
-    if command -v claude &> /dev/null; then
-        echo "正在启动 claude..."
-        exec claude
-    fi
+# 解析命令行参数
+LAUNCH_CLAUDE=false
+PROFILE_NAME=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -c|--claude)
+            LAUNCH_CLAUDE=true
+            shift
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -*)
+            echo "错误: 未知选项 '$1'"
+            echo
+            show_help
+            exit 1
+            ;;
+        *)
+            if [[ -n "$PROFILE_NAME" ]]; then
+                echo "错误: 只能指定一个配置名称"
+                echo
+                show_help
+                exit 1
+            fi
+            PROFILE_NAME="$1"
+            shift
+            ;;
+    esac
+done
+
+# 根据参数执行相应操作
+if [[ -n "$PROFILE_NAME" ]]; then
+    apply_profile "$PROFILE_NAME" "$LAUNCH_CLAUDE"
 else
     main
 fi
