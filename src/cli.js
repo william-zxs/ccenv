@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * claudenv - 便捷切换 Claude API 配置的命令行工具
+ * ccenv - 便捷切换 Claude API 配置的命令行工具
  */
 
 const fs = require('fs');
@@ -9,7 +9,7 @@ const path = require('path');
 const os = require('os');
 
 // 配置文件路径
-const CONFIG_DIR = path.join(os.homedir(), '.claudenv');
+const CONFIG_DIR = path.join(os.homedir(), '.ccenv');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'settings.json');
 
 /**
@@ -101,7 +101,7 @@ function applyProfile(config, profileName) {
  * 显示帮助信息
  */
 function showHelp() {
-  console.log('使用方法: claudenv [选项] [命令|配置名称]');
+  console.log('使用方法: ccenv [选项] [命令|配置名称]');
   console.log('');
   console.log('命令:');
   console.log('  ls                              列出所有可用配置');
@@ -126,7 +126,7 @@ function listProfiles() {
     console.error(`${current} ${profile.name} - ${baseUrl}`);
   });
   console.error('');
-  console.error('使用方法: claudenv <配置名称>');
+  console.error('使用方法: ccenv <配置名称>');
 }
 
 /**
@@ -134,7 +134,7 @@ function listProfiles() {
  */
 function showVersion() {
   const packageJson = require('../package.json');
-  console.log(`claudenv v${packageJson.version}`);
+  console.log(`ccenv v${packageJson.version}`);
 }
 
 /**

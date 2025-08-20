@@ -1,10 +1,10 @@
 {
-  "name": "claudenv",
+  "name": "ccenv",
   "version": "1.0.0",
   "description": "便捷的命令行工具，用于在不同的 Claude API 配置之间快速切换",
   "main": "src/cli.js",
   "bin": {
-    "claudenv": "./src/cli.js"
+    "ccenv": "./src/cli.js"
   },
   "scripts": {
     "start": "node src/cli.js",
@@ -12,6 +12,7 @@
     "postinstall": "node src/init.js"
   },
   "keywords": [
+    "ccenv",
     "claude",
     "api",
     "configuration",
