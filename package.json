@@ -23,10 +23,7 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "inquirer": "^8.2.6",
-    "fs-extra": "^11.2.0"
-  },
+  "dependencies": {},
   "engines": {
     "node": ">=14.0.0"
   },
