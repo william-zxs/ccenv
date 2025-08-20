@@ -63,9 +63,25 @@ jq -r --arg name "kimi" '.profiles[] | select(.name == $name)' ~/.claudenv/setti
 ```
 
 ### Usage
+
+#### 推荐使用方式 (安装后自动可用)
 ```bash
-claudenv                # Interactive mode
-claudenv "kimi"     # Direct switch to named profile
+claudenv                        # Interactive mode
+claudenv kimi                   # Direct switch to named profile
+claudenv -c kimi                # Switch to profile and launch Claude
+```
+
+#### 备用使用方式 (如果 shell 函数未正确安装)
+```bash
+eval "$(claudenv)"              # Interactive mode
+eval "$(claudenv kimi)"         # Direct switch to named profile
+source <(claudenv kimi)         # Alternative syntax
+```
+
+#### 调试和开发
+```bash
+claudenv --raw kimi             # Outputs shell commands (for debugging)
+claudenv --help                 # Show help information
 ```
 
 ## Dependencies
@@ -80,6 +96,42 @@ claudenv "kimi"     # Direct switch to named profile
 - ANTHROPIC_AUTH_TOKEN
 - ANTHROPIC_MODEL
 - ANTHROPIC_SMALL_FAST_MODEL
+
+## Shell Function Installation
+
+During installation, claudenv automatically detects your shell type and offers to install a shell function for convenient usage. This allows direct command usage like `claudenv kimi` instead of requiring `eval "$(claudenv kimi)"`.
+
+### Supported Shells
+- bash: Function installed in `.bashrc` or `.bash_profile`
+- zsh: Function installed in `.zshrc` or `.zprofile`
+- fish: Function installed in `.config/fish/config.fish`
+
+### Manual Installation
+If automatic installation fails, add this to your shell config file:
+
+**For bash/zsh:**
+```bash
+claudenv() {
+    if command -v claudenv >/dev/null 2>&1; then
+        eval "$(command claudenv "$@")"
+    else
+        echo "claudenv command not found. Please reinstall claudenv." >&2
+        return 1
+    fi
+}
+```
+
+**For fish:**
+```fish
+function claudenv
+    if command -sq claudenv
+        eval (command claudenv $argv)
+    else
+        echo "claudenv command not found. Please reinstall claudenv." >&2
+        return 1
+    end
+end
+```
 
 ## Important Implementation Notes
 
