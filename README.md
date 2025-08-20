@@ -20,12 +20,12 @@
 npm install -g claudenv
 ```
 
-### 方式二：本地安装
+### 方式二：本地开发安装
 
 1. 克隆或下载本项目
-2. 运行安装脚本：
+2. 在项目目录中运行：
    ```bash
-   ./install.sh
+   npm install -g .
    ```
 
 npm 安装会自动：

@@ -8,8 +8,9 @@ claudenv is a command-line tool for quickly switching between different Claude A
 
 ## Architecture
 
-- **install.sh**: Installation script that creates config directory, generates default settings.json, and installs the executable
-- **claudenv**: Main bash script that provides interactive configuration switching
+- **src/cli.js**: Main Node.js CLI script for interactive configuration switching
+- **src/init.js**: Initialization script that creates config directory and default settings.json
+- **package.json**: NPM package configuration with postinstall hook
 - **~/.claudenv/settings.json**: Configuration file containing API profiles in nested format
 
 ## Configuration Structure
@@ -44,7 +45,9 @@ The project uses a nested JSON structure where environment variables are stored 
 
 ### Installation
 ```bash
-./install.sh
+npm install -g claudenv
+# or for local development
+npm install -g .
 ```
 
 ### Testing configuration format
@@ -67,7 +70,8 @@ claudenv "kimi"     # Direct switch to named profile
 
 ## Dependencies
 
-- jq: Required for JSON parsing in bash script
+- Node.js: >= 14.0.0
+- npm: For global installation
 - claude: The tool will automatically exec claude command after configuration switch
 
 ## Environment Variables Managed

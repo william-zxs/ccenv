@@ -1,254 +1,250 @@
-#!/usr/bin/env node
+#!/bin/bash
 
-/**
- * claudenv - 便捷切换 Claude API 配置的命令行工具
- */
+# claudenv - 便捷切换 Claude API 配置的命令行工具
 
-const fs = require('fs-extra');
-const path = require('path');
-const os = require('os');
-const inquirer = require('inquirer');
-const { spawn } = require('child_process');
+set -e
 
-// 配置文件路径
-const CONFIG_DIR = path.join(os.homedir(), '.claudenv');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'settings.json');
+CONFIG_DIR="$HOME/.claudenv"
+CONFIG_FILE="$CONFIG_DIR/settings.json"
 
-// 环境变量名称
-const ENV_VARS = [
-  'ANTHROPIC_BASE_URL',
-  'ANTHROPIC_AUTH_TOKEN',
-  'ANTHROPIC_MODEL',
-  'ANTHROPIC_SMALL_FAST_MODEL'
-];
+# 检查配置文件是否存在
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "错误: 配置文件不存在 $CONFIG_FILE"
+    echo "请先运行安装脚本生成配置文件"
+    exit 1
+fi
 
-/**
- * 检查配置文件是否存在
- */
-function checkConfigFile() {
-  if (!fs.existsSync(CONFIG_FILE)) {
-    console.error(`错误: 配置文件不存在 ${CONFIG_FILE}`);
-    console.error('请先运行安装脚本生成配置文件');
-    process.exit(1);
-  }
+# 检查 jq 是否安装
+if ! command -v jq &> /dev/null; then
+    echo "错误: 需要安装 jq 来解析 JSON 配置文件"
+    echo "请运行: brew install jq"
+    exit 1
+fi
+
+# 显示帮助信息
+show_help() {
+    echo "使用方法: claudenv [选项] [配置名称]"
+    echo
+    echo "选项:"
+    echo "  -c, --claude    切换配置后启动 Claude"
+    echo "  -h, --help      显示此帮助信息"
+    echo
+    echo "示例:"
+    echo "  claudenv              交互式选择配置"
+    echo "  claudenv kimi         切换到 kimi 配置"
+    echo "  claudenv -c kimi      切换到 kimi 配置并启动 Claude"
+    echo
+    echo "提示: 默认只切换配置，不自动启动 Claude"
 }
 
-/**
- * 读取配置文件
- */
-function readConfig() {
-  try {
-    const configContent = fs.readFileSync(CONFIG_FILE, 'utf8');
-    return JSON.parse(configContent);
-  } catch (error) {
-    console.error('错误: 无法读取配置文件', error.message);
-    process.exit(1);
-  }
-}
-
-/**
- * 获取当前生效的配置
- */
-function getCurrentProfile() {
-  const currentBaseUrl = process.env.ANTHROPIC_BASE_URL;
-  if (!currentBaseUrl) {
-    return null;
-  }
-  
-  const config = readConfig();
-  const profile = config.profiles.find(p => 
-    p.env && p.env.ANTHROPIC_BASE_URL === currentBaseUrl
-  );
-  
-  return profile ? profile.name : null;
-}
-
-/**
- * 获取所有配置名称
- */
-function getProfileNames() {
-  const config = readConfig();
-  return config.profiles.map(p => p.name);
-}
-
-/**
- * 根据名称获取配置
- */
-function getProfileConfig(profileName) {
-  const config = readConfig();
-  return config.profiles.find(p => p.name === profileName);
-}
-
-/**
- * 应用配置
- */
-function applyProfile(profileName) {
-  const profileConfig = getProfileConfig(profileName);
-  
-  if (!profileConfig) {
-    console.error(`错误: 找不到配置 '${profileName}'`);
-    process.exit(1);
-  }
-  
-  // 先清除现有的环境变量
-  ENV_VARS.forEach(varName => {
-    delete process.env[varName];
-  });
-  
-  // 应用新配置
-  if (profileConfig.env) {
-    ENV_VARS.forEach(varName => {
-      if (profileConfig.env[varName]) {
-        process.env[varName] = profileConfig.env[varName];
-      }
-    });
-  }
-  
-  console.log(`已切换到配置: ${profileName}`);
-}
-
-/**
- * 启动 claude 命令
- */
-function startClaude() {
-  console.log('正在启动 claude...');
-  
-  // 使用 spawn 来执行 claude 命令，并继承当前进程的环境变量
-  const claude = spawn('claude', [], {
-    stdio: 'inherit',
-    env: process.env
-  });
-  
-  claude.on('error', (error) => {
-    console.error('警告: 找不到 claude 命令');
-    console.error('请确保 claude 已正确安装并在 PATH 中');
-  });
-  
-  claude.on('close', (code) => {
-    process.exit(code);
-  });
-}
-
-/**
- * 交互式菜单
- */
-async function showInteractiveMenu() {
-  checkConfigFile();
-  
-  const profileNames = getProfileNames();
-  const currentProfile = getCurrentProfile();
-  
-  // 构建选择项，标记当前配置
-  const choices = profileNames.map(name => ({
-    name: name === currentProfile ? `${name} *` : name,
-    value: name
-  }));
-  
-  try {
-    const answers = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'profile',
-        message: '选择 Claude API 配置:',
-        choices: choices,
-        default: currentProfile || profileNames[0]
-      }
-    ]);
+# 获取当前生效的配置
+get_current_profile() {
+    local current_base_url="$ANTHROPIC_BASE_URL"
+    if [[ -z "$current_base_url" ]]; then
+        echo ""
+        return
+    fi
     
-    applyProfile(answers.profile);
-    console.log();
-    startClaude();
+    jq -r --arg url "$current_base_url" '.profiles[] | select(.env.ANTHROPIC_BASE_URL == $url) | .name' "$CONFIG_FILE" 2>/dev/null || echo ""
+}
+
+# 获取所有配置名称
+get_profile_names() {
+    jq -r '.profiles[].name' "$CONFIG_FILE"
+}
+
+# 根据名称获取配置
+get_profile_config() {
+    local profile_name="$1"
+    jq -r --arg name "$profile_name" '.profiles[] | select(.name == $name)' "$CONFIG_FILE"
+}
+
+# 应用配置
+apply_profile() {
+    local profile_name="$1"
+    local launch_claude="$2"
+    local config
+    config=$(get_profile_config "$profile_name")
     
-  } catch (error) {
-    if (error.isTtyError) {
-      console.error('错误: 无法在非交互式终端中运行');
-    } else {
-      console.error('错误:', error.message);
-    }
-    process.exit(1);
-  }
-}
-
-/**
- * 显示版本信息
- */
-function showVersion() {
-  const packageJson = require('../package.json');
-  console.log(`claudenv v${packageJson.version}`);
-}
-
-/**
- * 显示帮助信息
- */
-function showHelp() {
-  console.log(`
-claudenv - 便捷切换 Claude API 配置的命令行工具
-
-使用方法:
-  claudenv                    # 交互式选择配置
-  claudenv <配置名>           # 直接切换到指定配置
-  claudenv --version, -v      # 显示版本信息
-  claudenv --help, -h         # 显示帮助信息
-
-示例:
-  claudenv                    # 显示配置菜单
-  claudenv kimi              # 切换到 kimi 配置
-  claudenv bigmodel          # 切换到 bigmodel 配置
-
-配置文件位置: ~/.claudenv/settings.json
-  `);
-}
-
-/**
- * 主函数
- */
-async function main() {
-  // 处理命令行参数
-  const args = process.argv.slice(2);
-  
-  if (args.length > 0) {
-    const firstArg = args[0];
+    if [[ -z "$config" ]]; then
+        echo "错误: 找不到配置 '$profile_name'"
+        exit 1
+    fi
     
-    // 处理帮助和版本参数
-    if (firstArg === '--version' || firstArg === '-v') {
-      showVersion();
-      return;
-    }
+    # 先清除现有的环境变量
+    unset ANTHROPIC_BASE_URL
+    unset ANTHROPIC_AUTH_TOKEN
+    unset ANTHROPIC_MODEL
+    unset ANTHROPIC_SMALL_FAST_MODEL
     
-    if (firstArg === '--help' || firstArg === '-h') {
-      showHelp();
-      return;
-    }
+    # 应用新配置
+    local base_url auth_token model small_fast_model
+    base_url=$(echo "$config" | jq -r '.env.ANTHROPIC_BASE_URL // empty')
+    auth_token=$(echo "$config" | jq -r '.env.ANTHROPIC_AUTH_TOKEN // empty')
+    model=$(echo "$config" | jq -r '.env.ANTHROPIC_MODEL // empty')
+    small_fast_model=$(echo "$config" | jq -r '.env.ANTHROPIC_SMALL_FAST_MODEL // empty')
     
-    // 其他参数视为配置名称
-    checkConfigFile();
-    applyProfile(firstArg);
-    console.log();
-    startClaude();
-  } else {
-    // 显示交互式菜单
-    await showInteractiveMenu();
-  }
+    [[ -n "$base_url" ]] && export ANTHROPIC_BASE_URL="$base_url"
+    [[ -n "$auth_token" ]] && export ANTHROPIC_AUTH_TOKEN="$auth_token"
+    [[ -n "$model" ]] && export ANTHROPIC_MODEL="$model"
+    [[ -n "$small_fast_model" ]] && export ANTHROPIC_SMALL_FAST_MODEL="$small_fast_model"
+    
+    echo "已切换到配置: $profile_name"
+    
+    # 如果指定了启动 Claude，则启动
+    if [[ "$launch_claude" == "true" ]]; then
+        if command -v claude &> /dev/null; then
+            echo "正在启动 claude..."
+            exec claude
+        else
+            echo "警告: 找不到 claude 命令"
+            echo "请确保 claude 已正确安装并在 PATH 中"
+        fi
+    fi
 }
 
-// 处理 Ctrl+C 退出
-process.on('SIGINT', () => {
-  console.log('\n已取消');
-  process.exit(0);
-});
-
-// 运行主函数
-if (require.main === module) {
-  main().catch(error => {
-    console.error('发生错误:', error.message);
-    process.exit(1);
-  });
+# 显示菜单项
+display_menu() {
+    local profiles=("$@")
+    local current_profile="$1"
+    shift
+    local selected_index="$1"
+    shift
+    local profiles_array=("$@")
+    
+    clear
+    echo "选择 Claude API 配置 (使用 ↑↓ 方向键选择，回车确认):"
+    echo "按 'c' 键切换配置并启动 Claude"
+    echo
+    
+    for i in "${!profiles_array[@]}"; do
+        local prefix="  "
+        local suffix=""
+        
+        # 标记当前生效的配置
+        if [[ "${profiles_array[$i]}" == "$current_profile" ]]; then
+            suffix=" *"
+        fi
+        
+        # 高亮选中的项
+        if [[ $i -eq $selected_index ]]; then
+            prefix="➤ "
+            echo -e "\033[7m${prefix}${profiles_array[$i]}${suffix}\033[0m"
+        else
+            echo "${prefix}${profiles_array[$i]}${suffix}"
+        fi
+    done
+    
+    echo
+    echo "提示: * 表示当前生效的配置，按 'c' 启动 Claude"
 }
 
-module.exports = {
-  readConfig,
-  getCurrentProfile,
-  getProfileNames,
-  getProfileConfig,
-  applyProfile
-};
+# 主函数
+main() {
+    local current_profile
+    current_profile=$(get_current_profile)
+    
+    # 读取所有配置名称到数组
+    local profiles=()
+    while IFS= read -r line; do
+        profiles+=("$line")
+    done < <(get_profile_names)
+    
+    # 找到当前配置的索引，作为默认选择
+    local selected_index=0
+    if [[ -n "$current_profile" ]]; then
+        for i in "${!profiles[@]}"; do
+            if [[ "${profiles[$i]}" == "$current_profile" ]]; then
+                selected_index=$i
+                break
+            fi
+        done
+    fi
+    
+    local total_profiles=${#profiles[@]}
+    
+    # 交互式菜单循环
+    while true; do
+        display_menu "$current_profile" "$selected_index" "${profiles[@]}"
+        
+        # 读取按键
+        read -rsn1 key
+        
+        case "$key" in
+            $'\x1b')  # ESC序列
+                read -rsn2 key
+                case "$key" in
+                    '[A')  # 上箭头
+                        ((selected_index--))
+                        if [[ $selected_index -lt 0 ]]; then
+                            selected_index=$((total_profiles - 1))
+                        fi
+                        ;;
+                    '[B')  # 下箭头
+                        ((selected_index++))
+                        if [[ $selected_index -ge $total_profiles ]]; then
+                            selected_index=0
+                        fi
+                        ;;
+                esac
+                ;;
+            '')  # 回车键
+                local choice="${profiles[$selected_index]}"
+                clear
+                apply_profile "$choice" "false"
+                break
+                ;;
+            'c'|'C')  # 切换配置并启动 Claude
+                local choice="${profiles[$selected_index]}"
+                clear
+                apply_profile "$choice" "true"
+                break
+                ;;
+            'q'|'Q')  # 退出
+                clear
+                echo "已取消"
+                exit 0
+                ;;
+        esac
+    done
+}
+
+# 解析命令行参数
+LAUNCH_CLAUDE=false
+PROFILE_NAME=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -c|--claude)
+            LAUNCH_CLAUDE=true
+            shift
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -*)
+            echo "错误: 未知选项 '$1'"
+            echo
+            show_help
+            exit 1
+            ;;
+        *)
+            if [[ -n "$PROFILE_NAME" ]]; then
+                echo "错误: 只能指定一个配置名称"
+                echo
+                show_help
+                exit 1
+            fi
+            PROFILE_NAME="$1"
+            shift
+            ;;
+    esac
+done
+
+# 根据参数执行相应操作
+if [[ -n "$PROFILE_NAME" ]]; then
+    apply_profile "$PROFILE_NAME" "$LAUNCH_CLAUDE"
+else
+    main
+fi
