@@ -10,8 +10,17 @@
 - 🔧 自动管理环境变量（unset 旧配置，设置新配置）
 - 🚀 切换后自动启动 `claude` 命令
 - ⚙️ 支持直接指定配置名称快速切换
+- 📦 支持 npm 全局安装，跨平台兼容
 
 ## 安装
+
+### 方式一：通过 npm 安装（推荐）
+
+```bash
+npm install -g claudenv
+```
+
+### 方式二：本地安装
 
 1. 克隆或下载本项目
 2. 运行安装脚本：
@@ -19,19 +28,11 @@
    ./install.sh
    ```
 
-安装脚本会：
+npm 安装会自动：
 
 - 创建配置目录 `~/.claudenv/`
 - 生成默认配置文件 `~/.claudenv/settings.json`
-- 复制可执行文件到 `/usr/local/bin/claudenv`
-- 设置必要的权限
-
-## 依赖
-
-- `jq` - 用于解析 JSON 配置文件
-  ```bash
-  brew install jq
-  ```
+- 安装 `claudenv` 命令到全局 PATH
 
 ## 使用方法
 
@@ -60,15 +61,19 @@ claudenv kimi
   "profiles": [
     {
       "name": "kimi",
-      "ANTHROPIC_BASE_URL": "https://api.moonshot.cn/anthropic",
-      "ANTHROPIC_AUTH_TOKEN": "sk-xxx",
-      "ANTHROPIC_MODEL": "kimi-k2-turbo-preview",
-      "ANTHROPIC_SMALL_FAST_MODEL": "kimi-k2-turbo-preview"
+      "env": {
+        "ANTHROPIC_BASE_URL": "https://api.moonshot.cn/anthropic",
+        "ANTHROPIC_AUTH_TOKEN": "sk-xxx",
+        "ANTHROPIC_MODEL": "kimi-k2-turbo-preview",
+        "ANTHROPIC_SMALL_FAST_MODEL": "kimi-k2-turbo-preview"
+      }
     },
     {
       "name": "bigmodel",
-      "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
-      "ANTHROPIC_AUTH_TOKEN": "xxx.xxx"
+      "env": {
+        "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
+        "ANTHROPIC_AUTH_TOKEN": "xxx.xxx"
+      }
     }
   ]
 }
@@ -99,13 +104,44 @@ claudenv kimi
    - 设置新配置的环境变量
    - 自动执行 `claude` 命令
 
+## 开发和本地测试
+
+如果你想在本地开发或测试：
+
+```bash
+# 克隆项目
+git clone <repository-url>
+cd claudenv
+
+# 安装依赖
+npm install
+
+# 本地测试
+node src/cli.js
+
+# 或者链接到全局
+npm link
+claudenv
+```
+
 ## 注意事项
 
 - 环境变量的作用域仅限于当前 shell 会话
-- 需要确保 `/usr/local/bin` 在 PATH 中
-- 需要安装 `jq` 工具来解析 JSON 配置
 - 需要确保 `claude` 命令已正确安装
+- Node.js 版本要求：>= 14.0.0
 
 ## 自定义配置
 
 可以编辑 `~/.claudenv/settings.json` 文件来添加或修改配置。修改后的配置会立即生效，无需重新安装。
+
+## 发布到 npm
+
+要发布新版本到 npm：
+
+```bash
+# 更新版本号
+npm version patch  # 或 minor, major
+
+# 发布
+npm publish
+```

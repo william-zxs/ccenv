@@ -1,0 +1,89 @@
+#!/usr/bin/env node
+
+/**
+ * claudenv 初始化脚本
+ * 在 npm install 后自动运行，创建配置目录和默认配置文件
+ */
+
+const fs = require('fs-extra');
+const path = require('path');
+const os = require('os');
+
+// 配置文件路径
+const CONFIG_DIR = path.join(os.homedir(), '.claudenv');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'settings.json');
+
+// 默认配置内容
+const DEFAULT_CONFIG = {
+  profiles: [
+    {
+      name: "kimi",
+      env: {
+        ANTHROPIC_BASE_URL: "https://api.moonshot.cn/anthropic",
+        ANTHROPIC_AUTH_TOKEN: "",
+        ANTHROPIC_MODEL: "kimi-k2-turbo-preview",
+        ANTHROPIC_SMALL_FAST_MODEL: "kimi-k2-turbo-preview"
+      }
+    },
+    {
+      name: "bigmodel",
+      env: {
+        ANTHROPIC_BASE_URL: "https://open.bigmodel.cn/api/anthropic",
+        ANTHROPIC_AUTH_TOKEN: ""
+      }
+    },
+    {
+      name: "qianwen",
+      env: {
+        ANTHROPIC_BASE_URL: "https://dashscope.aliyuncs.com/api/v2/apps/claude-code-proxy",
+        ANTHROPIC_AUTH_TOKEN: ""
+      }
+    }
+  ]
+};
+
+/**
+ * 初始化配置
+ */
+async function init() {
+  try {
+    console.log('正在初始化 claudenv...');
+    
+    // 创建配置目录
+    if (!fs.existsSync(CONFIG_DIR)) {
+      console.log(`创建配置目录: ${CONFIG_DIR}`);
+      await fs.ensureDir(CONFIG_DIR);
+    }
+    
+    // 创建默认配置文件
+    if (!fs.existsSync(CONFIG_FILE)) {
+      console.log(`创建默认配置文件: ${CONFIG_FILE}`);
+      await fs.writeJson(CONFIG_FILE, DEFAULT_CONFIG, { spaces: 2 });
+      console.log('已创建默认配置文件');
+    } else {
+      console.log('配置文件已存在，跳过创建');
+    }
+    
+    console.log('');
+    console.log('✅ claudenv 初始化完成!');
+    console.log('');
+    console.log('使用方法:');
+    console.log('  claudenv           # 交互式选择配置');
+    console.log('  claudenv kimi      # 直接切换到指定配置');
+    console.log('');
+    console.log(`配置文件位置: ${CONFIG_FILE}`);
+    console.log('');
+    console.log('⚠️  注意: 请编辑配置文件，填入您的 API Token');
+    
+  } catch (error) {
+    console.error('初始化失败:', error.message);
+    process.exit(1);
+  }
+}
+
+// 运行初始化
+if (require.main === module) {
+  init();
+}
+
+module.exports = { init };
