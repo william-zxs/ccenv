@@ -7,7 +7,19 @@ const SHELL_TEMPLATES = {
     comment: '# ccenv function for easy profile switching',
     function: `ccenv() {
     if command -v ccenv >/dev/null 2>&1; then
-        eval "$(command ccenv "$@")"
+        # For help, version, ls commands, or no arguments, don't eval, just run directly
+        if [[ $# -eq 0 ]]; then
+            command ccenv
+        else
+            case "$1" in
+                -h|--help|-v|--version|ls)
+                    command ccenv "$@"
+                    ;;
+                *)
+                    eval "$(command ccenv "$@")"
+                    ;;
+            esac
+        fi
     else
         echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1
@@ -19,7 +31,19 @@ const SHELL_TEMPLATES = {
     comment: '# ccenv function for easy profile switching',
     function: `ccenv() {
     if command -v ccenv >/dev/null 2>&1; then
-        eval "$(command ccenv "$@")"
+        # For help, version, ls commands, or no arguments, don't eval, just run directly
+        if [[ $# -eq 0 ]]; then
+            command ccenv
+        else
+            case "$1" in
+                -h|--help|-v|--version|ls)
+                    command ccenv "$@"
+                    ;;
+                *)
+                    eval "$(command ccenv "$@")"
+                    ;;
+            esac
+        fi
     else
         echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1
@@ -31,7 +55,17 @@ const SHELL_TEMPLATES = {
     comment: '# ccenv function for easy profile switching',
     function: `function ccenv
     if command -sq ccenv
-        eval (command ccenv $argv)
+        # For help, version, ls commands, or no arguments, don't eval, just run directly
+        if test (count $argv) -eq 0
+            command ccenv
+        else
+            switch $argv[1]
+                case '-h' '--help' '-v' '--version' 'ls'
+                    command ccenv $argv
+                case '*'
+                    eval (command ccenv $argv)
+            end
+        end
     else
         echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1

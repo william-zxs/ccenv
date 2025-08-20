@@ -145,7 +145,9 @@ function main() {
   const args = process.argv.slice(2);
   
   if (args.length === 0) {
-    showHelp();
+    // 检查配置文件
+    checkConfigFile();
+    listProfiles();
     return;
   }
   
