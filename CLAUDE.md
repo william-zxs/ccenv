@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-claudenv is a command-line tool for quickly switching between different Claude API configurations. It manages environment variables and provides an interactive menu for selecting API providers like Moonshot AI (Kimi), Zhipu AI (BigModel), AICoding, and Alibaba Tongyi Qianwen.
+ccenv is a command-line tool for quickly switching between different Claude API configurations. It manages environment variables and provides an interactive menu for selecting API providers like Moonshot AI (Kimi), Zhipu AI (BigModel), AICoding, and Alibaba Tongyi Qianwen.
 
 ## Architecture
 
 - **src/cli.js**: Main Node.js CLI script for interactive configuration switching
 - **src/init.js**: Initialization script that creates config directory and default settings.json
 - **package.json**: NPM package configuration with postinstall hook
-- **~/.claudenv/settings.json**: Configuration file containing API profiles in nested format
+- **~/.ccenv/settings.json**: Configuration file containing API profiles in nested format
 
 ## Configuration Structure
 
@@ -33,7 +33,7 @@ The project uses a nested JSON structure where environment variables are stored 
 }
 ```
 
-## Key Functions in claudenv script
+## Key Functions in ccenv script
 
 - `get_current_profile()`: Detects active configuration by matching `ANTHROPIC_BASE_URL`
 - `get_profile_names()`: Extracts all profile names using jq
@@ -45,7 +45,7 @@ The project uses a nested JSON structure where environment variables are stored 
 
 ### Installation
 ```bash
-npm install -g claudenv
+npm install -g ccenv
 # or for local development
 npm install -g .
 ```
@@ -53,35 +53,35 @@ npm install -g .
 ### Testing configuration format
 ```bash
 # Verify JSON syntax
-cat ~/.claudenv/settings.json | jq .
+cat ~/.ccenv/settings.json | jq .
 
 # Test profile name extraction
-jq -r '.profiles[].name' ~/.claudenv/settings.json
+jq -r '.profiles[].name' ~/.ccenv/settings.json
 
 # Test specific profile retrieval
-jq -r --arg name "kimi" '.profiles[] | select(.name == $name)' ~/.claudenv/settings.json
+jq -r --arg name "kimi" '.profiles[] | select(.name == $name)' ~/.ccenv/settings.json
 ```
 
 ### Usage
 
 #### 推荐使用方式 (安装后自动可用)
 ```bash
-claudenv                        # Interactive mode
-claudenv kimi                   # Direct switch to named profile
-claudenv -c kimi                # Switch to profile and launch Claude
+ccenv                        # Interactive mode
+ccenv kimi                   # Direct switch to named profile
+ccenv -c kimi                # Switch to profile and launch Claude
 ```
 
 #### 备用使用方式 (如果 shell 函数未正确安装)
 ```bash
-eval "$(claudenv)"              # Interactive mode
-eval "$(claudenv kimi)"         # Direct switch to named profile
-source <(claudenv kimi)         # Alternative syntax
+eval "$(ccenv)"              # Interactive mode
+eval "$(ccenv kimi)"         # Direct switch to named profile
+source <(ccenv kimi)         # Alternative syntax
 ```
 
 #### 调试和开发
 ```bash
-claudenv --raw kimi             # Outputs shell commands (for debugging)
-claudenv --help                 # Show help information
+ccenv --raw kimi             # Outputs shell commands (for debugging)
+ccenv --help                 # Show help information
 ```
 
 ## Dependencies
@@ -99,7 +99,7 @@ claudenv --help                 # Show help information
 
 ## Shell Function Installation
 
-During installation, claudenv automatically detects your shell type and offers to install a shell function for convenient usage. This allows direct command usage like `claudenv kimi` instead of requiring `eval "$(claudenv kimi)"`.
+During installation, ccenv automatically detects your shell type and offers to install a shell function for convenient usage. This allows direct command usage like `ccenv kimi` instead of requiring `eval "$(ccenv kimi)"`.
 
 ### Supported Shells
 - bash: Function installed in `.bashrc` or `.bash_profile`
@@ -111,11 +111,11 @@ If automatic installation fails, add this to your shell config file:
 
 **For bash/zsh:**
 ```bash
-claudenv() {
-    if command -v claudenv >/dev/null 2>&1; then
-        eval "$(command claudenv "$@")"
+ccenv() {
+    if command -v ccenv >/dev/null 2>&1; then
+        eval "$(command ccenv "$@")"
     else
-        echo "claudenv command not found. Please reinstall claudenv." >&2
+        echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1
     fi
 }
@@ -123,11 +123,11 @@ claudenv() {
 
 **For fish:**
 ```fish
-function claudenv
-    if command -sq claudenv
-        eval (command claudenv $argv)
+function ccenv
+    if command -sq ccenv
+        eval (command ccenv $argv)
     else
-        echo "claudenv command not found. Please reinstall claudenv." >&2
+        echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1
     end
 end

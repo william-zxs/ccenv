@@ -4,36 +4,36 @@
 
 const SHELL_TEMPLATES = {
   bash: {
-    comment: '# claudenv function for easy profile switching',
-    function: `claudenv() {
-    if command -v claudenv >/dev/null 2>&1; then
-        eval "$(command claudenv "$@")"
+    comment: '# ccenv function for easy profile switching',
+    function: `ccenv() {
+    if command -v ccenv >/dev/null 2>&1; then
+        eval "$(command ccenv "$@")"
     else
-        echo "claudenv command not found. Please reinstall claudenv." >&2
+        echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1
     fi
 }`
   },
   
   zsh: {
-    comment: '# claudenv function for easy profile switching',
-    function: `claudenv() {
-    if command -v claudenv >/dev/null 2>&1; then
-        eval "$(command claudenv "$@")"
+    comment: '# ccenv function for easy profile switching',
+    function: `ccenv() {
+    if command -v ccenv >/dev/null 2>&1; then
+        eval "$(command ccenv "$@")"
     else
-        echo "claudenv command not found. Please reinstall claudenv." >&2
+        echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1
     fi
 }`
   },
   
   fish: {
-    comment: '# claudenv function for easy profile switching',
-    function: `function claudenv
-    if command -sq claudenv
-        eval (command claudenv $argv)
+    comment: '# ccenv function for easy profile switching',
+    function: `function ccenv
+    if command -sq ccenv
+        eval (command ccenv $argv)
     else
-        echo "claudenv command not found. Please reinstall claudenv." >&2
+        echo "ccenv command not found. Please reinstall ccenv." >&2
         return 1
     end
 end`

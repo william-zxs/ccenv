@@ -1,4 +1,4 @@
-# claudenv
+# ccenv
 
 一个便捷的命令行工具，用于在不同的 Claude API 配置之间快速切换。
 
@@ -17,7 +17,7 @@
 ### 方式一：通过 npm 安装（推荐）
 
 ```bash
-npm install -g claudenv
+npm install -g ccenv
 ```
 
 ### 方式二：本地开发安装
@@ -30,16 +30,16 @@ npm install -g claudenv
 
 npm 安装会自动：
 
-- 创建配置目录 `~/.claudenv/`
-- 生成默认配置文件 `~/.claudenv/settings.json`
-- 安装 `claudenv` 命令到全局 PATH
+- 创建配置目录 `~/.ccenv/`
+- 生成默认配置文件 `~/.ccenv/settings.json`
+- 安装 `ccenv` 命令到全局 PATH
 
 ## 使用方法
 
 ### 交互式选择
 
 ```bash
-claudenv
+ccenv
 ```
 
 将显示配置菜单，使用数字选择对应的配置。
@@ -47,14 +47,14 @@ claudenv
 ### 直接切换
 
 ```bash
-claudenv kimi
+ccenv kimi
 ```
 
 直接切换到指定名称的配置。
 
 ## 配置文件
 
-配置文件位于 `~/.claudenv/settings.json`，格式如下：
+配置文件位于 `~/.ccenv/settings.json`，格式如下：
 
 ```json
 {
@@ -96,7 +96,7 @@ claudenv kimi
 
 ## 工作原理
 
-1. 读取 `~/.claudenv/settings.json` 配置文件
+1. 读取 `~/.ccenv/settings.json` 配置文件
 2. 检测当前生效的配置（通过 `ANTHROPIC_BASE_URL` 环境变量）
 3. 显示交互式菜单，标记当前配置
 4. 用户选择新配置后：
@@ -111,7 +111,7 @@ claudenv kimi
 ```bash
 # 克隆项目
 git clone <repository-url>
-cd claudenv
+cd ccenv
 
 # 安装依赖
 npm install
@@ -121,7 +121,7 @@ node src/cli.js
 
 # 或者链接到全局
 npm link
-claudenv
+ccenv
 ```
 
 ## 注意事项
@@ -132,7 +132,7 @@ claudenv
 
 ## 自定义配置
 
-可以编辑 `~/.claudenv/settings.json` 文件来添加或修改配置。修改后的配置会立即生效，无需重新安装。
+可以编辑 `~/.ccenv/settings.json` 文件来添加或修改配置。修改后的配置会立即生效，无需重新安装。
 
 ## 发布到 npm
 
