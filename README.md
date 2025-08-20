@@ -17,7 +17,7 @@
 ### 方式一：通过 npm 安装（推荐）
 
 ```bash
-npm install -g ccenv
+npm install -g @william-zxs/ccenv
 ```
 
 ### 方式二：本地开发安装
