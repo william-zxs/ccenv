@@ -1,60 +1,62 @@
 # ccenv
 
-一个便捷的命令行工具，用于在不同的 Claude API 配置之间快速切换。
+A convenient command-line tool for quickly switching between different Claude API configurations.
 
-## 功能特性
+[中文](README-zh.md)
 
-- 🔄 交互式配置选择菜单
-- ⭐ 当前生效配置用 `*` 标记
-- 🎯 光标默认定位在当前生效的配置上
-- 🔧 自动管理环境变量（unset 旧配置，设置新配置）
-- 🚀 切换后自动启动 `claude` 命令
-- ⚙️ 支持直接指定配置名称快速切换
-- 📦 支持 npm 全局安装，跨平台兼容
+## Features
 
-## 安装
+- 🔄 Interactive configuration selection menu
+- ⭐ Current active configuration marked with `*`
+- 🎯 Cursor defaults to the currently active configuration
+- 🔧 Automatic environment variable management (unset old config, set new config)
+- 🚀 Auto-launch `claude` command after switching
+- ⚙️ Support for direct configuration name specification for quick switching
+- 📦 npm global installation support, cross-platform compatibility
 
-### 方式一：通过 npm 安装（推荐）
+## Installation
+
+### Method 1: Install via npm (Recommended)
 
 ```bash
 npm install -g @william-zxs/ccenv
 ```
 
-### 方式二：本地开发安装
+### Method 2: Local Development Installation
 
-1. 克隆或下载本项目
-2. 在项目目录中运行：
+1. Clone or download this project
+2. Run in the project directory:
    ```bash
    npm install -g .
    ```
 
-npm 安装会自动：
+npm installation will automatically:
 
-- 创建配置目录 `~/.ccenv/`
-- 生成默认配置文件 `~/.ccenv/settings.json`
-- 安装 `ccenv` 命令到全局 PATH
+- Create configuration directory `~/.ccenv/`
+- Generate default configuration file `~/.ccenv/settings.json`
+- Install `ccenv` command to global PATH
 
-## 使用方法
+## Usage
 
-### 交互式选择
+### Interactive Selection
 
 ```bash
 ccenv
 ```
 
-将显示配置菜单，使用数字选择对应的配置。
+This will display the configuration menu, use numbers to select the corresponding configuration.
 
-### 直接切换
+### Direct Switching
 
 ```bash
 ccenv kimi
 ```
 
-直接切换到指定名称的配置。
+Directly switch to the configuration with the specified name.
 
-## 配置文件
+## Configuration File
 
-配置文件位于 `~/.ccenv/settings.json`，格式如下：
+The configuration file is located at `~/.ccenv/settings.json` with the following format:
 
 ```json
 {
@@ -79,69 +81,69 @@ ccenv kimi
 }
 ```
 
-### 支持的环境变量
+### Supported Environment Variables
 
-- `ANTHROPIC_BASE_URL` - API 基础 URL
-- `ANTHROPIC_AUTH_TOKEN` - 认证令牌
-- `ANTHROPIC_MODEL` - 默认模型
-- `ANTHROPIC_SMALL_FAST_MODEL` - 小型快速模型
+- `ANTHROPIC_BASE_URL` - API base URL
+- `ANTHROPIC_AUTH_TOKEN` - Authentication token
+- `ANTHROPIC_MODEL` - Default model
+- `ANTHROPIC_SMALL_FAST_MODEL` - Small fast model
 
-## 内置配置
+## Built-in Configurations
 
-默认包含以下 API 配置：
+The following API configurations are included by default:
 
 1. **kimi** - Moonshot AI
-2. **bigmodel** - 智谱 AI
-3. **qianwen** - 阿里云通义千问
+2. **bigmodel** - Zhipu AI
+3. **qianwen** - Alibaba Tongyi Qianwen
 
-## 工作原理
+## How It Works
 
-1. 读取 `~/.ccenv/settings.json` 配置文件
-2. 检测当前生效的配置（通过 `ANTHROPIC_BASE_URL` 环境变量）
-3. 显示交互式菜单，标记当前配置
-4. 用户选择新配置后：
-   - 清除现有的相关环境变量
-   - 设置新配置的环境变量
-   - 自动执行 `claude` 命令
+1. Read the `~/.ccenv/settings.json` configuration file
+2. Detect the currently active configuration (via `ANTHROPIC_BASE_URL` environment variable)
+3. Display interactive menu with current configuration marked
+4. After user selects a new configuration:
+   - Clear existing related environment variables
+   - Set new configuration environment variables
+   - Automatically execute `claude` command
 
-## 开发和本地测试
+## Development and Local Testing
 
-如果你想在本地开发或测试：
+If you want to develop or test locally:
 
 ```bash
-# 克隆项目
+# Clone project
 git clone <repository-url>
 cd ccenv
 
-# 安装依赖
+# Install dependencies
 npm install
 
-# 本地测试
+# Local testing
 node src/cli.js
 
-# 或者链接到全局
+# Or link to global
 npm link
 ccenv
 ```
 
-## 注意事项
+## Important Notes
 
-- 环境变量的作用域仅限于当前 shell 会话
-- 需要确保 `claude` 命令已正确安装
-- Node.js 版本要求：>= 14.0.0
+- Environment variables are scoped to the current shell session only
+- Ensure `claude` command is properly installed
+- Node.js version requirement: >= 14.0.0
 
-## 自定义配置
+## Custom Configuration
 
-可以编辑 `~/.ccenv/settings.json` 文件来添加或修改配置。修改后的配置会立即生效，无需重新安装。
+You can edit the `~/.ccenv/settings.json` file to add or modify configurations. Modified configurations take effect immediately without reinstallation.
 
-## 发布到 npm
+## Publishing to npm
 
-要发布新版本到 npm：
+To publish a new version to npm:
 
 ```bash
-# 更新版本号
-npm version patch  # 或 minor, major
+# Update version number
+npm version patch  # or minor, major
 
-# 发布
+# Publish
 npm publish
 ```
