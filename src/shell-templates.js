@@ -12,7 +12,7 @@ const SHELL_TEMPLATES = {
             command ccenv
         else
             case "$1" in
-                -h|--help|-v|--version|ls)
+                -h|--help|-v|--version|ls|edit)
                     command ccenv "$@"
                     ;;
                 *)
@@ -36,7 +36,7 @@ const SHELL_TEMPLATES = {
             command ccenv
         else
             case "$1" in
-                -h|--help|-v|--version|ls)
+                -h|--help|-v|--version|ls|edit)
                     command ccenv "$@"
                     ;;
                 *)
@@ -60,7 +60,7 @@ const SHELL_TEMPLATES = {
             command ccenv
         else
             switch $argv[1]
-                case '-h' '--help' '-v' '--version' 'ls'
+                case '-h' '--help' '-v' '--version' 'ls' 'edit'
                     command ccenv $argv
                 case '*'
                     eval (command ccenv $argv)

@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { spawn } = require('child_process');
 
 // 配置文件路径
 const CONFIG_DIR = path.join(os.homedir(), '.ccenv');
@@ -105,6 +106,7 @@ function showHelp() {
   console.log('');
   console.log('命令:');
   console.log('  ls                              列出所有可用配置');
+  console.log('  edit                            编辑配置文件');
   console.log('  <配置名称>                       切换到指定配置');
   console.log('');
   console.log('选项:');
@@ -138,6 +140,66 @@ function showVersion() {
 }
 
 /**
+ * 编辑配置文件
+ */
+function editConfig() {
+  checkConfigFile();
+  
+  // 检查是否在 TTY 环境中
+  if (!process.stdout.isTTY || !process.stdin.isTTY) {
+    console.error('错误: ccenv edit 需要在交互式终端环境中运行');
+    console.error('提示: 请直接在终端中运行 ccenv edit，不要通过管道或重定向');
+    process.exit(1);
+  }
+  
+  // 编辑器优先级：vim -> vi
+  const editors = ['vim', 'vi'];
+  
+  function tryEditor(index) {
+    if (index >= editors.length) {
+      console.error('错误: 无法找到可用的编辑器 (vim 或 vi)');
+      console.error(`提示: 您可以直接编辑配置文件: ${CONFIG_FILE}`);
+      process.exit(1);
+    }
+    
+    const editor = editors[index];
+    console.error(`正在使用 ${editor} 打开配置文件...`);
+    
+    const editorProcess = spawn(editor, [CONFIG_FILE], {
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        TERM: process.env.TERM || 'xterm-256color'
+      },
+      cwd: process.cwd()
+    });
+    
+    editorProcess.on('error', (error) => {
+      if (error.code === 'ENOENT') {
+        // 编辑器不存在，尝试下一个
+        console.error(`${editor} 不可用，尝试下一个编辑器...`);
+        tryEditor(index + 1);
+      } else {
+        console.error(`错误: 启动编辑器失败: ${error.message}`);
+        process.exit(1);
+      }
+    });
+    
+    editorProcess.on('exit', (code) => {
+      if (code === 0) {
+        console.error('配置文件编辑完成');
+      } else if (code !== null) {
+        console.error(`编辑器退出，退出代码: ${code}`);
+      }
+      // 正常结束程序，不要让 Node.js 继续运行
+      process.exit(code || 0);
+    });
+  }
+  
+  tryEditor(0);
+}
+
+/**
  * 主函数
  */
 function main() {
@@ -166,6 +228,9 @@ function main() {
       // 检查配置文件
       checkConfigFile();
       listProfiles();
+      return;
+    case 'edit':
+      editConfig();
       return;
     default:
       if (command.startsWith('-')) {
