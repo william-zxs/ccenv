@@ -12,11 +12,14 @@ const SHELL_TEMPLATES = {
             command _ccenv_core
         else
             case "$1" in
-                -h|--help|-v|--version|ls|edit)
+                -h|--help|-v|--version|ls|edit|e)
                     command _ccenv_core "$@"
                     ;;
-                *)
+                use|u)
                     eval "$(command _ccenv_core "$@")"
+                    ;;
+                *)
+                    command _ccenv_core "$@"
                     ;;
             esac
         fi
@@ -36,11 +39,14 @@ const SHELL_TEMPLATES = {
             command _ccenv_core
         else
             case "$1" in
-                -h|--help|-v|--version|ls|edit)
+                -h|--help|-v|--version|ls|edit|e)
                     command _ccenv_core "$@"
                     ;;
-                *)
+                use|u)
                     eval "$(command _ccenv_core "$@")"
+                    ;;
+                *)
+                    command _ccenv_core "$@"
                     ;;
             esac
         fi
@@ -60,10 +66,12 @@ const SHELL_TEMPLATES = {
             command _ccenv_core
         else
             switch $argv[1]
-                case '-h' '--help' '-v' '--version' 'ls' 'edit'
+                case '-h' '--help' '-v' '--version' 'ls' 'edit' 'e'
                     command _ccenv_core $argv
-                case '*'
+                case 'use' 'u'
                     eval (command _ccenv_core $argv)
+                case '*'
+                    command _ccenv_core $argv
             end
         end
     else

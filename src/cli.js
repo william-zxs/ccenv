@@ -106,8 +106,10 @@ function showHelp() {
   console.log('');
   console.log('命令:');
   console.log('  ls                              列出所有可用配置');
+  console.log('  use <配置名称>                   切换到指定配置');
+  console.log('  u <配置名称>                     切换到指定配置 (简写)');
   console.log('  edit                            编辑配置文件');
-  console.log('  <配置名称>                       切换到指定配置');
+  console.log('  e                               编辑配置文件 (简写)');
   console.log('');
   console.log('选项:');
   console.log('  -h, --help                      显示此帮助信息');
@@ -128,7 +130,7 @@ function listProfiles() {
     console.error(`${current} ${profile.name} - ${baseUrl}`);
   });
   console.error('');
-  console.error('使用方法: ccenv <配置名称>');
+  console.error('使用方法: ccenv use <配置名称>');
 }
 
 /**
@@ -232,20 +234,27 @@ function main() {
     case 'edit':
       editConfig();
       return;
-    default:
-      if (command.startsWith('-')) {
-        console.error(`错误: 未知选项 '${command}'`);
-        console.error('');
-        showHelp();
+    case 'e':
+      editConfig();
+      return;
+    case 'use':
+    case 'u':
+      if (args.length < 2) {
+        console.error(`错误: ${command} 命令需要指定配置名称`);
+        console.error(`使用方法: ccenv ${command} <配置名称>`);
         process.exit(1);
-      } else {
-        // 检查配置文件
-        checkConfigFile();
-        // 直接应用指定配置
-        const config = readConfig();
-        applyProfile(config, command);
       }
-      break;
+      // 检查配置文件
+      checkConfigFile();
+      // 应用指定配置
+      const config = readConfig();
+      applyProfile(config, args[1]);
+      return;
+    default:
+      console.error(`错误: 未知命令 '${command}'`);
+      console.error('');
+      showHelp();
+      process.exit(1);
   }
 }
 
