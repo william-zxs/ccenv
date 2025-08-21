@@ -6,22 +6,22 @@ const SHELL_TEMPLATES = {
   bash: {
     comment: '# ccenv function for easy profile switching',
     function: `ccenv() {
-    if command -v ccenv >/dev/null 2>&1; then
+    if command -v ccenv-core >/dev/null 2>&1; then
         # For help, version, ls commands, or no arguments, don't eval, just run directly
         if [[ $# -eq 0 ]]; then
-            command ccenv
+            command ccenv-core
         else
             case "$1" in
                 -h|--help|-v|--version|ls|edit)
-                    command ccenv "$@"
+                    command ccenv-core "$@"
                     ;;
                 *)
-                    eval "$(command ccenv "$@")"
+                    eval "$(command ccenv-core "$@")"
                     ;;
             esac
         fi
     else
-        echo "ccenv command not found. Please reinstall ccenv." >&2
+        echo "ccenv-core command not found. Please reinstall ccenv." >&2
         return 1
     fi
 }`
@@ -30,22 +30,22 @@ const SHELL_TEMPLATES = {
   zsh: {
     comment: '# ccenv function for easy profile switching',
     function: `ccenv() {
-    if command -v ccenv >/dev/null 2>&1; then
+    if command -v ccenv-core >/dev/null 2>&1; then
         # For help, version, ls commands, or no arguments, don't eval, just run directly
         if [[ $# -eq 0 ]]; then
-            command ccenv
+            command ccenv-core
         else
             case "$1" in
                 -h|--help|-v|--version|ls|edit)
-                    command ccenv "$@"
+                    command ccenv-core "$@"
                     ;;
                 *)
-                    eval "$(command ccenv "$@")"
+                    eval "$(command ccenv-core "$@")"
                     ;;
             esac
         fi
     else
-        echo "ccenv command not found. Please reinstall ccenv." >&2
+        echo "ccenv-core command not found. Please reinstall ccenv." >&2
         return 1
     fi
 }`
@@ -54,20 +54,20 @@ const SHELL_TEMPLATES = {
   fish: {
     comment: '# ccenv function for easy profile switching',
     function: `function ccenv
-    if command -sq ccenv
+    if command -sq ccenv-core
         # For help, version, ls commands, or no arguments, don't eval, just run directly
         if test (count $argv) -eq 0
-            command ccenv
+            command ccenv-core
         else
             switch $argv[1]
                 case '-h' '--help' '-v' '--version' 'ls' 'edit'
-                    command ccenv $argv
+                    command ccenv-core $argv
                 case '*'
-                    eval (command ccenv $argv)
+                    eval (command ccenv-core $argv)
             end
         end
     else
-        echo "ccenv command not found. Please reinstall ccenv." >&2
+        echo "ccenv-core command not found. Please reinstall ccenv." >&2
         return 1
     end
 end`
