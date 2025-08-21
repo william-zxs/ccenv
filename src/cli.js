@@ -57,6 +57,64 @@ function getProfileConfig(config, profileName) {
 }
 
 /**
+ * 获取默认配置名称
+ */
+function getDefaultProfile(config) {
+  return config.defaultProfile;
+}
+
+/**
+ * 设置默认配置
+ */
+function setDefaultProfile(profileName) {
+  const config = readConfig();
+  
+  // 验证配置名称是否存在
+  if (!getProfileConfig(config, profileName)) {
+    console.error(`错误: 找不到配置 '${profileName}'`);
+    process.exit(1);
+  }
+  
+  // 更新默认配置
+  config.defaultProfile = profileName;
+  
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+    console.error(`已设置默认配置为: ${profileName}`);
+  } catch (error) {
+    console.error('错误: 无法保存配置文件:', error.message);
+    process.exit(1);
+  }
+}
+
+/**
+ * 显示默认配置信息
+ */
+function showDefaultProfile() {
+  const config = readConfig();
+  const defaultProfile = getDefaultProfile(config);
+  
+  if (defaultProfile) {
+    console.error(`当前默认配置: ${defaultProfile}`);
+  } else {
+    console.error('当前没有设置默认配置');
+  }
+}
+
+/**
+ * 写入配置文件的安全函数
+ */
+function writeConfig(config) {
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+    return true;
+  } catch (error) {
+    console.error('错误: 无法保存配置文件:', error.message);
+    return false;
+  }
+}
+
+/**
  * 生成环境变量设置的 shell 命令
  */
 function generateEnvCommands(profile) {
@@ -99,6 +157,28 @@ function applyProfile(config, profileName) {
 }
 
 /**
+ * 自动应用默认配置（如果没有设置环境变量且有默认配置）
+ */
+function autoApplyDefaultProfile() {
+  const config = readConfig();
+  const defaultProfile = getDefaultProfile(config);
+  
+  // 如果没有默认配置，输出空的命令
+  if (!defaultProfile) {
+    return;
+  }
+  
+  // 如果当前没有设置 ANTHROPIC_BASE_URL，则应用默认配置
+  if (!process.env.ANTHROPIC_BASE_URL) {
+    const profile = getProfileConfig(config, defaultProfile);
+    if (profile) {
+      console.log(generateEnvCommands(profile));
+      console.error(`自动应用默认配置: ${defaultProfile}`);
+    }
+  }
+}
+
+/**
  * 显示帮助信息
  */
 function showHelp() {
@@ -108,12 +188,17 @@ function showHelp() {
   console.log('  ls                              列出所有可用配置');
   console.log('  use <配置名称>                   切换到指定配置');
   console.log('  u <配置名称>                     切换到指定配置 (简写)');
+  console.log('  default                         显示当前默认配置');
+  console.log('  default <配置名称>               设置默认配置');
   console.log('  edit                            编辑配置文件');
   console.log('  e                               编辑配置文件 (简写)');
   console.log('');
   console.log('选项:');
   console.log('  -h, --help                      显示此帮助信息');
   console.log('  -v, --version                   显示版本信息');
+  console.log('');
+  console.log('说明:');
+  console.log('  设置默认配置后，打开新终端时会自动应用该配置的环境变量');
 }
 
 /**
@@ -122,14 +207,17 @@ function showHelp() {
 function listProfiles() {
   const config = readConfig();
   const currentProfile = getCurrentProfile(config);
+  const defaultProfile = getDefaultProfile(config);
   
   console.error('可用的配置:');
   config.profiles.forEach(profile => {
     const current = currentProfile && currentProfile.name === profile.name ? '*' : ' ';
+    const isDefault = defaultProfile === profile.name ? ' (默认)' : '';
     const baseUrl = profile.env?.ANTHROPIC_BASE_URL || 'N/A';
-    console.error(`${current} ${profile.name} - ${baseUrl}`);
+    console.error(`${current} ${profile.name}${isDefault} - ${baseUrl}`);
   });
   console.error('');
+  console.error('标记说明: * = 当前生效, (默认) = 默认配置');
   console.error('使用方法: ccenv use <配置名称>');
 }
 
@@ -249,6 +337,22 @@ function main() {
       // 应用指定配置
       const config = readConfig();
       applyProfile(config, args[1]);
+      return;
+    case 'default':
+      // 检查配置文件
+      checkConfigFile();
+      if (args.length < 2) {
+        // 显示当前默认配置
+        showDefaultProfile();
+      } else {
+        // 设置默认配置
+        setDefaultProfile(args[1]);
+      }
+      return;
+    case '--auto-apply-default':
+      // 内部命令：自动应用默认配置
+      checkConfigFile();
+      autoApplyDefaultProfile();
       return;
     default:
       console.error(`错误: 未知命令 '${command}'`);

@@ -15,6 +15,7 @@ const CONFIG_FILE = path.join(CONFIG_DIR, 'settings.json');
 
 // 默认配置内容
 const DEFAULT_CONFIG = {
+  defaultProfile: null,
   profiles: [
     {
       name: "kimi",

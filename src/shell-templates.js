@@ -27,7 +27,12 @@ const SHELL_TEMPLATES = {
         echo "_ccenv_core command not found. Please reinstall ccenv." >&2
         return 1
     fi
-}`
+}
+
+# Auto-apply default profile on shell startup
+if command -v _ccenv_core >/dev/null 2>&1 && [[ -z "$ANTHROPIC_BASE_URL" ]]; then
+    eval "$(command _ccenv_core --auto-apply-default 2>/dev/null || true)"
+fi`
   },
   
   zsh: {
@@ -54,7 +59,12 @@ const SHELL_TEMPLATES = {
         echo "_ccenv_core command not found. Please reinstall ccenv." >&2
         return 1
     fi
-}`
+}
+
+# Auto-apply default profile on shell startup
+if command -v _ccenv_core >/dev/null 2>&1 && [[ -z "$ANTHROPIC_BASE_URL" ]]; then
+    eval "$(command _ccenv_core --auto-apply-default 2>/dev/null || true)"
+fi`
   },
   
   fish: {
@@ -78,6 +88,11 @@ const SHELL_TEMPLATES = {
         echo "_ccenv_core command not found. Please reinstall ccenv." >&2
         return 1
     end
+end
+
+# Auto-apply default profile on shell startup
+if command -sq _ccenv_core && test -z "$ANTHROPIC_BASE_URL"
+    eval (command _ccenv_core --auto-apply-default 2>/dev/null; or true)
 end`
   }
 };
