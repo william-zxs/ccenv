@@ -4,7 +4,7 @@
   "description": "便捷的命令行工具，用于在不同的 Claude API 配置之间快速切换",
   "main": "src/cli.js",
   "bin": {
-    "ccenv-core": "./src/cli.js"
+    "_ccenv_core": "./src/cli.js"
   },
   "scripts": {
     "start": "node src/cli.js",
