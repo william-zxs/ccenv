@@ -213,10 +213,12 @@ function listProfiles() {
     const current = currentProfile && currentProfile.name === profile.name ? '*' : ' ';
     const isDefault = defaultProfile === profile.name ? ' (默认)' : '';
     const baseUrl = profile.env?.ANTHROPIC_BASE_URL || 'N/A';
-    console.error(`${current} ${profile.name}${isDefault} - ${baseUrl}`);
+    const hasToken = profile.env?.ANTHROPIC_AUTH_TOKEN && profile.env.ANTHROPIC_AUTH_TOKEN.trim();
+    const tokenStatus = hasToken ? '[TOKEN: ✓]' : '[TOKEN: ✗]';
+    console.error(`${current} ${profile.name}${isDefault} - ${baseUrl} ${tokenStatus}`);
   });
   console.error('');
-  console.error('标记说明: * = 当前生效, (默认) = 默认配置');
+  console.error('标记说明: * = 当前生效, (默认) = 默认配置, [TOKEN: ✓] = 已配置TOKEN, [TOKEN: ✗] = 未配置TOKEN');
   console.error('使用方法: ccenv use <配置名称>');
 }
 
