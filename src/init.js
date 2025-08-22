@@ -29,17 +29,26 @@ const DEFAULT_CONFIG = {
       }
     },
     {
-      name: "bigmodel",
+      name: "glm",
       env: {
         ANTHROPIC_BASE_URL: "https://open.bigmodel.cn/api/anthropic",
         ANTHROPIC_AUTH_TOKEN: ""
       }
     },
     {
-      name: "qianwen",
+      name: "qwen",
       env: {
         ANTHROPIC_BASE_URL: "https://dashscope.aliyuncs.com/api/v2/apps/claude-code-proxy",
         ANTHROPIC_AUTH_TOKEN: ""
+      }
+    },
+    {
+      name: "deepseek",
+      env: {
+        ANTHROPIC_BASE_URL: "https://api.deepseek.com/anthropic",
+        ANTHROPIC_AUTH_TOKEN: "",
+        ANTHROPIC_MODEL: "deepseek-chat",
+        ANTHROPIC_SMALL_FAST_MODEL: "deepseek-chat"
       }
     }
   ]

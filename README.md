@@ -38,21 +38,51 @@ npm installation will automatically:
 
 ## Usage
 
-### Interactive Selection
+### Step 1: Configure API Keys (Required)
+
+After installation, you need to configure your API keys first:
+
+```bash
+ccenv edit
+```
+
+This will open the configuration file in an editor. Fill in your API keys for each provider:
+
+- **kimi**: Get your API key from [Moonshot AI](https://platform.moonshot.cn/)
+- **glm**: Get your API key from [Zhipu AI](https://open.bigmodel.cn/)  
+- **qwen**: Get your API key from [Alibaba Cloud](https://dashscope.aliyuncs.com/)
+- **deepseek**: Get your API key from [DeepSeek](https://platform.deepseek.com/)
+
+Replace the empty `ANTHROPIC_AUTH_TOKEN` values with your actual API keys.
+
+### Step 2: Switch Configurations
+
+#### Interactive Selection
 
 ```bash
 ccenv
 ```
 
-This will display the configuration menu, use numbers to select the corresponding configuration.
+This will display the configuration menu with color-coded token status:
+- 🟢 Green checkmark: API key configured
+- 🔴 Red X: API key missing
 
-### Direct Switching
+#### Direct Switching
 
 ```bash
-ccenv kimi
+ccenv kimi       # Switch to Moonshot AI (Kimi)
+ccenv glm        # Switch to Zhipu AI (GLM)
+ccenv qwen       # Switch to Alibaba Qianwen
+ccenv deepseek   # Switch to DeepSeek
 ```
 
-Directly switch to the configuration with the specified name.
+#### List All Configurations
+
+```bash
+ccenv ls
+```
+
+Shows all available configurations with their status.
 
 ## Configuration File
 
@@ -60,21 +90,38 @@ The configuration file is located at `~/.ccenv/settings.json` with the following
 
 ```json
 {
+  "defaultProfile": null,
   "profiles": [
     {
       "name": "kimi",
       "env": {
         "ANTHROPIC_BASE_URL": "https://api.moonshot.cn/anthropic",
-        "ANTHROPIC_AUTH_TOKEN": "sk-xxx",
+        "ANTHROPIC_AUTH_TOKEN": "sk-your-moonshot-api-key",
         "ANTHROPIC_MODEL": "kimi-k2-turbo-preview",
         "ANTHROPIC_SMALL_FAST_MODEL": "kimi-k2-turbo-preview"
       }
     },
     {
-      "name": "bigmodel",
+      "name": "glm",
       "env": {
         "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
-        "ANTHROPIC_AUTH_TOKEN": "xxx.xxx"
+        "ANTHROPIC_AUTH_TOKEN": "your-zhipu-api-key.xxx"
+      }
+    },
+    {
+      "name": "qwen",
+      "env": {
+        "ANTHROPIC_BASE_URL": "https://dashscope.aliyuncs.com/api/v2/apps/claude-code-proxy",
+        "ANTHROPIC_AUTH_TOKEN": "sk-your-alibaba-api-key"
+      }
+    },
+    {
+      "name": "deepseek",
+      "env": {
+        "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+        "ANTHROPIC_AUTH_TOKEN": "sk-your-deepseek-api-key",
+        "ANTHROPIC_MODEL": "deepseek-chat",
+        "ANTHROPIC_SMALL_FAST_MODEL": "deepseek-chat"
       }
     }
   ]
@@ -92,19 +139,20 @@ The configuration file is located at `~/.ccenv/settings.json` with the following
 
 The following API configurations are included by default:
 
-1. **kimi** - Moonshot AI
-2. **bigmodel** - Zhipu AI
-3. **qianwen** - Alibaba Tongyi Qianwen
+1. **kimi** - Moonshot AI (月之暗面)
+2. **glm** - Zhipu AI (智谱AI)
+3. **qwen** - Alibaba Tongyi Qianwen (阿里通义千问)
+4. **deepseek** - DeepSeek AI (深度求索)
 
 ## How It Works
 
 1. Read the `~/.ccenv/settings.json` configuration file
-2. Detect the currently active configuration (via `ANTHROPIC_BASE_URL` environment variable)
-3. Display interactive menu with current configuration marked
+2. Detect the currently active configuration (via `CCENV_PROFILE` environment variable)
+3. Display interactive menu with current configuration marked and token status color-coded
 4. After user selects a new configuration:
    - Clear existing related environment variables
    - Set new configuration environment variables
-   - Automatically execute `claude` command
+   - Set `CCENV_PROFILE` to track active configuration
 
 ## Development and Local Testing
 
