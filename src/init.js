@@ -7,6 +7,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+const { getShellTemplate, detectShell } = require('./shell-templates');
 
 // 配置文件路径
 const os = require('os');
@@ -52,6 +54,87 @@ function ensureDir(dir) {
   }
 }
 
+// detectShell 函数现在从 shell-templates.js 导入
+
+/**
+ * 获取 shell 配置文件路径
+ */
+function getShellConfigFile(shellType) {
+  const homeDir = os.homedir();
+  
+  switch (shellType) {
+    case 'zsh':
+      // 优先使用 .zshrc，如果不存在则使用 .zprofile
+      const zshrc = path.join(homeDir, '.zshrc');
+      const zprofile = path.join(homeDir, '.zprofile');
+      return fs.existsSync(zshrc) ? zshrc : zprofile;
+    
+    case 'bash':
+      // 优先使用 .bashrc，如果不存在则使用 .bash_profile
+      const bashrc = path.join(homeDir, '.bashrc');
+      const bash_profile = path.join(homeDir, '.bash_profile');
+      return fs.existsSync(bashrc) ? bashrc : bash_profile;
+    
+    case 'fish':
+      const fishConfig = path.join(homeDir, '.config', 'fish', 'config.fish');
+      // 确保 fish 配置目录存在
+      const fishDir = path.dirname(fishConfig);
+      if (!fs.existsSync(fishDir)) {
+        fs.mkdirSync(fishDir, { recursive: true });
+      }
+      return fishConfig;
+    
+    default:
+      return null;
+  }
+}
+
+// generateShellFunction 函数现在从 shell-templates.js 获取
+
+/**
+ * 安装 shell 函数
+ */
+function installShellFunction() {
+  try {
+    const shellType = detectShell();
+    const template = getShellTemplate(shellType);
+    
+    if (!template) {
+      console.log('⚠️  无法获取 shell 模板，请手动添加 shell 函数');
+      return false;
+    }
+    
+    const configFile = getShellConfigFile(shellType);
+    if (!configFile) {
+      console.log(`⚠️  无法找到 ${shellType} 配置文件`);
+      return false;
+    }
+    
+    // 检查是否已经安装了函数
+    let existingContent = '';
+    if (fs.existsSync(configFile)) {
+      existingContent = fs.readFileSync(configFile, 'utf8');
+      if (existingContent.includes('ccenv function for easy profile switching')) {
+        console.log(`✅ ccenv shell 函数已存在于 ${configFile}`);
+        return true;
+      }
+    }
+    
+    // 添加函数到配置文件
+    const functionCode = `\n${template.comment}\n${template.function}\n`;
+    fs.appendFileSync(configFile, functionCode);
+    
+    console.log(`✅ 已安装 ccenv shell 函数到 ${configFile}`);
+    console.log(`   请运行 'source ${configFile}' 或重新打开终端以使用新函数`);
+    
+    return true;
+    
+  } catch (error) {
+    console.log(`⚠️  安装 shell 函数时出错: ${error.message}`);
+    return false;
+  }
+}
+
 /**
  * 初始化配置
  */
@@ -73,6 +156,10 @@ function init() {
     } else {
       console.log('配置文件已存在，跳过创建');
     }
+    
+    // 安装 shell 函数
+    console.log('\n正在安装 shell 函数...');
+    installShellFunction();
     
     console.log('\n✅ ccenv 初始化完成!');
     console.log('');
