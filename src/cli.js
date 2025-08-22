@@ -41,12 +41,10 @@ function readConfig() {
  * 获取当前生效的配置
  */
 function getCurrentProfile(config) {
-  const currentBaseUrl = process.env.ANTHROPIC_BASE_URL;
-  if (!currentBaseUrl) return null;
+  const currentProfileName = process.env.CCENV_PROFILE;
+  if (!currentProfileName) return null;
   
-  return config.profiles.find(profile => 
-    profile.env && profile.env.ANTHROPIC_BASE_URL === currentBaseUrl
-  );
+  return config.profiles.find(profile => profile.name === currentProfileName);
 }
 
 /**
@@ -121,10 +119,13 @@ function generateEnvCommands(profile) {
   const commands = [];
   
   // 清除现有环境变量
-  const envVars = ['ANTHROPIC_BASE_URL', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_MODEL', 'ANTHROPIC_SMALL_FAST_MODEL'];
+  const envVars = ['ANTHROPIC_BASE_URL', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_MODEL', 'ANTHROPIC_SMALL_FAST_MODEL', 'CCENV_PROFILE'];
   envVars.forEach(varName => {
     commands.push(`unset ${varName}`);
   });
+  
+  // 设置 CCENV_PROFILE 环境变量
+  commands.push(`export CCENV_PROFILE="${profile.name}"`);
   
   // 设置新环境变量
   if (profile.env) {
@@ -168,8 +169,8 @@ function autoApplyDefaultProfile() {
     return;
   }
   
-  // 如果当前没有设置 ANTHROPIC_BASE_URL，则应用默认配置
-  if (!process.env.ANTHROPIC_BASE_URL) {
+  // 如果当前没有设置 CCENV_PROFILE，则应用默认配置
+  if (!process.env.CCENV_PROFILE) {
     const profile = getProfileConfig(config, defaultProfile);
     if (profile) {
       console.log(generateEnvCommands(profile));

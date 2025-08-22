@@ -18,6 +18,9 @@ const SHELL_TEMPLATES = {
                 use|u)
                     eval "$(command _ccenv_core "$@")"
                     ;;
+                --auto-apply-default)
+                    eval "$(command _ccenv_core "$@")"
+                    ;;
                 *)
                     command _ccenv_core "$@"
                     ;;
@@ -30,8 +33,8 @@ const SHELL_TEMPLATES = {
 }
 
 # Auto-apply default profile on shell startup
-if command -v _ccenv_core >/dev/null 2>&1 && [[ -z "$ANTHROPIC_BASE_URL" ]]; then
-    eval "$(command _ccenv_core --auto-apply-default 2>/dev/null || true)"
+if command -v _ccenv_core >/dev/null 2>&1 && [[ -z "$CCENV_PROFILE" ]]; then
+    ccenv --auto-apply-default 2>/dev/null || true
 fi`
   },
   
@@ -50,6 +53,9 @@ fi`
                 use|u)
                     eval "$(command _ccenv_core "$@")"
                     ;;
+                --auto-apply-default)
+                    eval "$(command _ccenv_core "$@")"
+                    ;;
                 *)
                     command _ccenv_core "$@"
                     ;;
@@ -62,8 +68,8 @@ fi`
 }
 
 # Auto-apply default profile on shell startup
-if command -v _ccenv_core >/dev/null 2>&1 && [[ -z "$ANTHROPIC_BASE_URL" ]]; then
-    eval "$(command _ccenv_core --auto-apply-default 2>/dev/null || true)"
+if command -v _ccenv_core >/dev/null 2>&1 && [[ -z "$CCENV_PROFILE" ]]; then
+    ccenv --auto-apply-default 2>/dev/null || true
 fi`
   },
   
@@ -80,6 +86,8 @@ fi`
                     command _ccenv_core $argv
                 case 'use' 'u'
                     eval (command _ccenv_core $argv)
+                case '--auto-apply-default'
+                    eval (command _ccenv_core $argv)
                 case '*'
                     command _ccenv_core $argv
             end
@@ -91,8 +99,8 @@ fi`
 end
 
 # Auto-apply default profile on shell startup
-if command -sq _ccenv_core && test -z "$ANTHROPIC_BASE_URL"
-    eval (command _ccenv_core --auto-apply-default 2>/dev/null; or true)
+if command -sq _ccenv_core && test -z "$CCENV_PROFILE"
+    ccenv --auto-apply-default 2>/dev/null; or true
 end`
   }
 };
