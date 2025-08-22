@@ -14,6 +14,17 @@ const CONFIG_DIR = path.join(os.homedir(), '.ccenv');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'settings.json');
 
 /**
+ * ANSI 颜色辅助函数
+ */
+function colorGreen(text) {
+  return `\x1b[32m${text}\x1b[0m`;
+}
+
+function colorRed(text) {
+  return `\x1b[31m${text}\x1b[0m`;
+}
+
+/**
  * 检查配置文件是否存在
  */
 function checkConfigFile() {
@@ -214,11 +225,11 @@ function listProfiles() {
     const isDefault = defaultProfile === profile.name ? ' (默认)' : '';
     const baseUrl = profile.env?.ANTHROPIC_BASE_URL || 'N/A';
     const hasToken = profile.env?.ANTHROPIC_AUTH_TOKEN && profile.env.ANTHROPIC_AUTH_TOKEN.trim();
-    const tokenStatus = hasToken ? '[TOKEN: ✓]' : '[TOKEN: ✗]';
+    const tokenStatus = hasToken ? colorGreen('[TOKEN: ✓]') : colorRed('[TOKEN: ✗]');
     console.error(`${current} ${profile.name}${isDefault} - ${baseUrl} ${tokenStatus}`);
   });
   console.error('');
-  console.error('标记说明: * = 当前生效, (默认) = 默认配置, [TOKEN: ✓] = 已配置TOKEN, [TOKEN: ✗] = 未配置TOKEN');
+  console.error(`标记说明: * = 当前生效, (默认) = 默认配置, ${colorGreen('[TOKEN: ✓]')} = 已配置TOKEN, ${colorRed('[TOKEN: ✗]')} = 未配置TOKEN`);
   console.error('使用方法: ccenv use <配置名称>');
 }
 
