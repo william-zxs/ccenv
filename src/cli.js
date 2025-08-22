@@ -186,12 +186,10 @@ function showHelp() {
   console.log('');
   console.log('命令:');
   console.log('  ls                              列出所有可用配置');
-  console.log('  use <配置名称>                   切换到指定配置');
-  console.log('  u <配置名称>                     切换到指定配置 (简写)');
+  console.log('  use, u <配置名称>                切换到指定配置');
   console.log('  default                         显示当前默认配置');
   console.log('  default <配置名称>               设置默认配置');
-  console.log('  edit                            编辑配置文件');
-  console.log('  e                               编辑配置文件 (简写)');
+  console.log('  edit, e                         编辑配置文件');
   console.log('');
   console.log('选项:');
   console.log('  -h, --help                      显示此帮助信息');
